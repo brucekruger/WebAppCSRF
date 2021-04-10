@@ -1,0 +1,80 @@
+﻿@model Employee
+
+@inject Microsoft.AspNetCore.Antiforgery.IAntiforgery Xsrf
+
+@functions{
+    public string GetAntiXsrfRequestToken()
+    {
+        return Xsrf.GetAndStoreTokens(Context).RequestToken;
+    }
+
+    public IEnumerable<SelectListItem> GetSelectListItems()
+    {
+        var departMentList = new List<SelectListItem>()
+        {
+            new SelectListItem("Department 1", "1"),
+            new SelectListItem("Department 2", "2"),
+            new SelectListItem("Department 3", "3"),
+            new SelectListItem("Department 4", "4"),
+            new SelectListItem("Department 5", "5")
+        };
+        return departMentList;
+    }
+}
+
+@{
+    ViewData["Title"] = "Create Employee";
+}
+
+<script>
+    function SendRequest() {
+        var csrfToken = '@GetAntiXsrfRequestToken()';
+
+        $.ajax({
+            url: "/Home/Create",
+            contentType: "application/x-www-form-urlencoded; charset=utf-8",
+            data: {
+                __RequestVerificationToken: csrfToken,
+                EmployeeName: "Test",
+                EmployeeAge: 33,
+                DepartmentId: 3
+            },
+            type: "POST",
+            headers: {
+                "X-CSRF-TOKEN": csrfToken
+            }
+        });
+    }
+</script>
+
+<form asp-action="Create" enctype="application/x-www-form-urlencoded" method="post" asp-antiforgery="true">
+    <table cellpadding="1" cellspacing="1">
+        <tr>
+            <th colspan="2" align="center">Person details:</th>
+        </tr>
+        <tr>
+            <td>Employee Name: </td>
+            <td>
+                @Html.TextBoxFor(m => m.EmployeeName)
+            </td>
+        </tr>
+        <tr>
+            <td>Employee Age: </td>
+            <td>
+                @Html.TextBoxFor(m => m.EmployeeAge)
+            </td>
+        </tr>
+        <tr>
+            <td>Department Id: </td>
+            <td>
+                @Html.DropDownListFor(m => m.DepartmentId, GetSelectListItems())
+            </td>
+        </tr>
+        <tr>
+            <td colspan="2"><input type="submit" value="Create" /></td>
+        </tr>
+        <tr>
+            <td colspan="2"><input type="button" value="Send AJAX" onclick="SendRequest()" /></td>
+        </tr>
+    </table>
+</form>
